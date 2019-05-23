@@ -104,6 +104,7 @@ void anTcpServer::on_new_connection(uv_stream_t * server, int status)
 		return;
 	}
 
+	client->set_Server(that);
 	r = uv_accept(reinterpret_cast<uv_stream_t*>(&that->uv_server_), reinterpret_cast<uv_stream_t*>(client));
 	if (r) {
 		log += fmt::format("uv_accept={}, {}", r, anuv::getUVError_Info(r));
@@ -126,7 +127,7 @@ void anTcpServer::on_new_connection(uv_stream_t * server, int status)
 		return;
 	}
 
-	log += fmt::format("sessionid={}, client={:08x}", sessionid, (int)client);
+	log += fmt::format("sessionid={}, client={:#08x}", sessionid, (int)client);
 	anuv::getlogger()->error(log);
 
 }
@@ -141,6 +142,50 @@ void anTcpServer::alloc_buffer(uv_handle_t * handle, size_t suggested_size, uv_b
 
 }
 
-void anTcpServer::on_read(uv_stream_t * client, ssize_t nread, const uv_buf_t * buf)
+void anTcpServer::on_read(uv_stream_t * socket, ssize_t nread, const uv_buf_t * buf)
 {
+	std::string log = fmt::format("anTcpServer::on_read({:#08x}, {})", (int)socket, nread);
+	
+	anTcpSocket * client = reinterpret_cast<anTcpSocket*>(socket);
+	if (nread < 0) {
+		switch (nread) {
+		case UV_EOF:	//主动断开
+			if (!uv_is_closing((uv_handle_t*)socket)) {
+				uv_close(reinterpret_cast<uv_handle_t*>(socket), anTcpServer::on_close);
+			}
+			break;
+		case UV_ECONNRESET:	//异常断开
+			break;
+		default:
+			break;
+		}
+
+	}
+	else if (0 == nread) {
+
+	}
+	else if (nread > 0) {
+
+	}
+
+	anuv::getlogger()->info(log);
+}
+
+void anTcpServer::on_close(uv_handle_t * handle)
+{
+	std::string log = fmt::format("anTcpServer::on_close({:#08x})", (int)handle);
+
+	if (UV_ASYNC == handle->type) {
+
+	}
+	else if (UV_TCP == handle->type) {
+		//从连接中清除
+		anTcpServer * that = reinterpret_cast<anTcpServer *>(handle->data);
+		
+
+		//通知退出
+		
+	}
+
+	anuv::getlogger()->info(log);
 }

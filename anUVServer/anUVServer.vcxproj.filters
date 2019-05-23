@@ -24,6 +24,9 @@
     <ClInclude Include="anTcpSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="anMee.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -36,6 +39,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="anTcpSocket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="anMee.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

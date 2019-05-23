@@ -24,7 +24,6 @@ namespace anuv {
 	extern std::string getUVError_Info(const int ec);
 
 
-	
 
 }
 

@@ -159,11 +159,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="anMee.h" />
     <ClInclude Include="anTcpServer.h" />
     <ClInclude Include="anTcpSocket.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="anMee.cpp" />
     <ClCompile Include="anTcpServer.cpp" />
     <ClCompile Include="anTcpSocket.cpp" />
     <ClCompile Include="anUVServer.cpp" />

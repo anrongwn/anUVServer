@@ -16,3 +16,10 @@ anTcpSocket::~anTcpSocket()
 		read_buffer_.base = nullptr;
 	}
 }
+
+void anTcpSocket::push_data(const char * data, const size_t len)
+{
+	mx_lock lk(mtx_);
+	datas_.insert(datas_.end(), data, data + len);
+
+}
