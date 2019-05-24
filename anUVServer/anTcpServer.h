@@ -3,8 +3,12 @@
 #include <atomic>
 #include <thread>
 #include <map>
+#include <memory>
+#include <functional>
 
 class anTcpSocket;
+class anMee;
+
 class anTcpServer
 {
 public:
@@ -19,6 +23,7 @@ public:
 public:
 	int start(const char* addr, const unsigned short port);
 	int run();
+	int wait_exit();
 
 private:
 	int init();
@@ -41,5 +46,7 @@ private:
 
 	std::atomic_bool init_ = { ATOMIC_FLAG_INIT };
 	std::map<int, anTcpSocket*> client_lists_;
+
+	std::unique_ptr<anMee> message_handler_;
 };
 

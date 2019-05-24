@@ -12,15 +12,23 @@
 
 int main()
 {
-	anuv::getlogger()->info("main start...");
-
+	std::string log = fmt::format("main start...");
 	int r = 0;
+
 	anTcpServer server(uv_default_loop());
 	r = server.start("0.0.0.0", 9555);
+	log += fmt::format("server.start(9555)={}", r);
+	anuv::getlogger()->info(log);
 
 	r = server.run();
+	log += fmt::format("server.run()={}", r);
+	anuv::getlogger()->info(log);
 
-	anuv::getlogger()->info("main exit.");
+
+	r = server.wait_exit();
+	log += fmt::format("server.wait_exit()={}", r);
+
+	anuv::getlogger()->info(log);
 
 	return r;
 }

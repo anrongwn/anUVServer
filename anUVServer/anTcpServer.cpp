@@ -1,10 +1,11 @@
 #include "pch.h"
 #include "anTcpServer.h"
 #include "anTcpSocket.h"
+#include "anMee.h"
 
 anTcpServer::anTcpServer(uv_loop_t *loop) : uv_loop_(loop)
 {
-	
+	message_handler_ = std::make_unique<anMee>();
 }
 
 
@@ -41,6 +42,13 @@ int anTcpServer::start(const char * addr, const unsigned short port)
 		return r;
 	}
 
+	r = message_handler_->start();
+	if (r) {
+		anuv::getlogger()->error("anTcpServer::start({}, {})--message_handler_->start={}, {}", \
+			addr, port, r, anuv::getUVError_Info(r));
+		return r;
+	}
+
 	return r;
 }
 
@@ -49,6 +57,26 @@ int anTcpServer::run()
 	int r = 0;
 
 	r = uv_run(uv_loop_, UV_RUN_DEFAULT);
+
+	return r;
+}
+
+int anTcpServer::wait_exit()
+{
+	int r = 0;
+
+	uv_walk(uv_loop_, anTcpServer::on_walk, nullptr);
+	uv_run(uv_loop_, UV_RUN_DEFAULT);
+	do {
+		r = uv_loop_close(uv_loop_);
+		if (UV_EBUSY == r) {
+			uv_run(uv_loop_, UV_RUN_NOWAIT);
+		}
+
+		anuv::getlogger()->info("anTcpServer::wait_exit(). uv_loop_close()={}", r);
+	} while (r);
+
+	uv_loop_ = nullptr;
 
 	return r;
 }
@@ -188,4 +216,11 @@ void anTcpServer::on_close(uv_handle_t * handle)
 	}
 
 	anuv::getlogger()->info(log);
+}
+
+void anTcpServer::on_walk(uv_handle_t * handle, void * arg)
+{
+	if (!uv_is_closing(handle)) {
+		uv_close(handle, nullptr);
+	}
 }

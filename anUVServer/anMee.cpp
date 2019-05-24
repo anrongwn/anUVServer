@@ -56,7 +56,8 @@ void anMee::on_walk(uv_handle_t * handle, void * arg)
 void anMee::on_work(uv_work_t * req)
 {
 	an_work_req * that = static_cast<an_work_req*>(req);
-	std::string log = fmt::format("anMee::on_work({:#08x}), tid={:#08x}", (int)that, (int)std::this_thread::get_id());
+	std::string log = fmt::format("anMee::on_work({:#08x}), tid={:#08x}", (int)that, uv_thread_self());
+	anTcpSocket *client = reinterpret_cast<anTcpSocket*>(that->data);
 
 
 	anuv::getlogger()->info(log);
