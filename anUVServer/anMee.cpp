@@ -22,7 +22,12 @@ void anMee::thread_func(void * lp)
 	int more = 0;
 	while (that->flag_) {
 		more = uv_run(that->loop_, UV_RUN_NOWAIT);
-		if (more) continue;
+		if (more) {
+			continue;
+		}
+		else {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));//∑¿’ºcpu
+		}
 	}
 
 	//fully close handle
