@@ -61,15 +61,21 @@ void anMee::on_walk(uv_handle_t * handle, void * arg)
 void anMee::on_work(uv_work_t * req)
 {
 	an_work_req * that = static_cast<an_work_req*>(req);
-	std::string log = fmt::format("anMee::on_work({:#08x}), tid={:#08x}", (int)that, uv_thread_self());
+	std::string log = fmt::format("anMee::on_work({:#08x}), tid={:#08x}", (int)that, (int)uv_thread_self());
 	anTcpSocket *client = reinterpret_cast<anTcpSocket*>(that->data);
 
+	client->package_handler();
 
 	anuv::getlogger()->info(log);
 }
 
 void anMee::on_after_work(uv_work_t * req, int status)
 {
+	std::string log = fmt::format("anMee::on_work({:#08x}, {}), tid={:#08x}", (int)req, status, (int)uv_thread_self());
+
+	delete req;
+
+	anuv::getlogger()->info(log);
 }
 
 int anMee::start()

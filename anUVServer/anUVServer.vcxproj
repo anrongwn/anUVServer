@@ -162,6 +162,7 @@
     <ClInclude Include="anMee.h" />
     <ClInclude Include="anTcpServer.h" />
     <ClInclude Include="anTcpSocket.h" />
+    <ClInclude Include="antlv.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>

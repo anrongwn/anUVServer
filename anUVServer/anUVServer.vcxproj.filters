@@ -27,6 +27,9 @@
     <ClInclude Include="anMee.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="antlv.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

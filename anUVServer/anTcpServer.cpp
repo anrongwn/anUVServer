@@ -81,6 +81,12 @@ int anTcpServer::wait_exit()
 	return r;
 }
 
+int anTcpServer::push_work(anTcpSocket * socket)
+{
+	return message_handler_->push_work(socket);
+}
+
+
 int anTcpServer::init()
 {
 	int r = 0;
@@ -193,7 +199,10 @@ void anTcpServer::on_read(uv_stream_t * socket, ssize_t nread, const uv_buf_t * 
 
 	}
 	else if (nread > 0) {
+		client->push_data(buf->base, nread);
 
+		anTcpServer *server = client->get_Server();
+		server->push_work(client);
 	}
 
 	anuv::getlogger()->info(log);

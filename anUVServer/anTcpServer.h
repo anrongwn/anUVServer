@@ -25,6 +25,7 @@ public:
 	int run();
 	int wait_exit();
 
+	int push_work(anTcpSocket* socket);
 private:
 	int init();
 
