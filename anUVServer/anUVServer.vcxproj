@@ -160,13 +160,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="anMee.h" />
+    <ClInclude Include="anMee2.h" />
     <ClInclude Include="anTcpServer.h" />
     <ClInclude Include="anTcpSocket.h" />
     <ClInclude Include="antlv.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="anMee.cpp" />
+    <ClCompile Include="anMee2.cpp" />
     <ClCompile Include="anTcpServer.cpp" />
     <ClCompile Include="anTcpSocket.cpp" />
     <ClCompile Include="anUVServer.cpp" />
@@ -176,6 +179,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="anUVServer.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -7,10 +7,13 @@
 #include "anTcpServer.h"
 #include <chrono>
 #include <string>
+//#include <limits>
 
 
 int main()
 {
+	//unsigned int n = std::numeric_limits<unsigned int>::max();
+
 	std::string log = fmt::format("main start...");
 	int r = 0;
 
@@ -20,12 +23,12 @@ int main()
 	anuv::getlogger()->info(log);
 
 	r = server.run();
-	log += fmt::format("server.run()={}", r);
+	log += fmt::format(",server.run()={}", r);
 	anuv::getlogger()->info(log);
 
 
 	r = server.wait_exit();
-	log += fmt::format("server.wait_exit()={}", r);
+	log += fmt::format(",server.wait_exit()={}", r);
 
 	anuv::getlogger()->info(log);
 

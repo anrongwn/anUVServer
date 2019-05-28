@@ -72,6 +72,7 @@ public:
 
 	void push_data(const char *data, const size_t len);
 	void package_handler();
+	std::vector< antlv::antlv_buffer> package_handler2();
 
 	int send_req(const antlv::antlv_buffer& data);
 	int write_socket(char* data, size_t len);
@@ -87,5 +88,7 @@ public:
 	uv_buf_t read_buffer_;
 	std::mutex mtx_;
 	antlv::antlv_buffer datas_;
+
+	std::mutex write_mtx_;
 };
 

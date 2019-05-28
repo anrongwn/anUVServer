@@ -71,7 +71,7 @@ void anMee::on_work(uv_work_t * req)
 
 void anMee::on_after_work(uv_work_t * req, int status)
 {
-	std::string log = fmt::format("anMee::on_work({:#08x}, {}), tid={:#08x}", (int)req, status, (int)uv_thread_self());
+	std::string log = fmt::format("anMee::on_after_work({:#08x}, {}), tid={:#08x}", (int)req, status, (int)uv_thread_self());
 
 	delete req;
 
@@ -115,10 +115,13 @@ int anMee::push_work(anTcpSocket * socket)
 	int r = 0;
 	std::string log = fmt::format("anMee::push_work({:#08x}), ", (int)socket);
 
+	//mx_lock lk(work_mtx_);
+
 	an_work_req *work = new an_work_req(socket);
 	r = uv_queue_work(this->loop_, work, anMee::on_work, anMee::on_after_work);
 	if (r) {
 		log += fmt::format("uv_queue_work()={}, {}", r, anuv::getUVError_Info(r));
+		anuv::getlogger()->error(log);
 	}
 
 	anuv::getlogger()->info(log);

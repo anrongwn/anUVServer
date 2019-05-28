@@ -44,10 +44,28 @@ void anTcpSocket::package_handler()
 
 }
 
+std::vector<antlv::antlv_buffer> anTcpSocket::package_handler2()
+{
+	mx_lock lk(mtx_);
+	std::vector<antlv::antlv_buffer> result;
+	while (!datas_.empty()) {
+		antlv::antlv_buffer data;
+		antlv::parse_package(datas_, data);
+
+		make_echo(data);
+
+		result.emplace_back(data);
+	}
+
+	return result;
+}
+
 int anTcpSocket::send_req(const antlv::antlv_buffer & data)
 {
+	mx_lock lk(write_mtx_);
+
 	int r = 0;
-	std::string log = fmt::format("anTcpSocket::send_req()");
+	std::string log = fmt::format("anTcpSocket::send_req(), ");
 
 	if (uv_is_closing(reinterpret_cast<uv_handle_t*>(this))) {
 		log += fmt::format("client={:#08x} is close.", (int)this);
@@ -61,6 +79,8 @@ int anTcpSocket::send_req(const antlv::antlv_buffer & data)
 	memcpy(tmp.base, data.data(), tmp.len);
 
 	req->set_buffer(&tmp);
+
+	log += fmt::format("an_async_req={:#08x}", (int)req);
 
 	r = uv_async_init(this->loop, req, anTcpSocket::on_send_notify);
 	if (r) {
@@ -76,13 +96,16 @@ int anTcpSocket::send_req(const antlv::antlv_buffer & data)
 		return r;
 	}
 
+	anuv::getlogger()->info(log);
+
 	return r;
 }
 
 int anTcpSocket::write_socket(char * data, size_t len)
 {
 	int r = 0;
-	std::string log = fmt::format("anTcpSocket::write_socket({}), ", std::string(data, len));
+	//std::string log = fmt::format("anTcpSocket::write_socket({}), ", std::string(data, len));
+	std::string log = fmt::format("anTcpSocket::write_socket(), ");
 
 	if (uv_is_closing((uv_handle_t*)this)) {
 		log += fmt::format("client={:#08x} is close.", (int)this);
@@ -95,8 +118,14 @@ int anTcpSocket::write_socket(char * data, size_t len)
 	}
 
 	an_write_req * req = new an_write_req(this);
-	req->set_buffer(data, len);
+	
+	//req->set_buffer(data, len);
+	uv_buf_t tmp = uv_buf_init((char*)malloc(len), len);
+	memcpy(tmp.base, data, tmp.len);
+	req->set_buffer(tmp.base, tmp.len);
 
+
+	log += fmt::format("an_write_req={:#08x}", (int)req);
 	r = uv_write(req, (uv_stream_t*)this, &req->buf, 1, anTcpSocket::on_write);
 	if (r) {
 		log += fmt::format("uv_write({:#08x})={}, {}", (int)req, r, anuv::getUVError_Info(r));
@@ -104,7 +133,9 @@ int anTcpSocket::write_socket(char * data, size_t len)
 		return r;
 	}
 
-	anuv::getlogger()->info(log);
+	anuv::getlogger()->debug(log);
+
+
 	return r;
 }
 
@@ -141,7 +172,7 @@ void anTcpSocket::on_close(uv_handle_t * handle)
 		delete handle;
 	}
 	
-	anuv::getlogger()->info(log);
+	anuv::getlogger()->debug(log);
 }
 
 void anTcpSocket::on_write(uv_write_t * req, int status)
@@ -154,5 +185,5 @@ void anTcpSocket::on_write(uv_write_t * req, int status)
 	}
 
 	delete handle;
-	anuv::getlogger()->info(log);
+	anuv::getlogger()->debug(log);
 }

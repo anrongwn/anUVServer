@@ -16,7 +16,7 @@ private:
 		an_work_req() = delete;
 	};
 public:
-	anMee();
+	 anMee();
 	~anMee();
 
 	anMee(const anMee&) = delete;
@@ -45,7 +45,7 @@ private:
 		size_t x;
 	};
 private:
-	std::mutex mtx_;
+	std::mutex work_mtx_;
 	std::atomic_bool flag_ = { ATOMIC_FLAG_INIT };
 	uv_thread_t engine_ = { nullptr };
 	uv_loop_t * loop_ = {nullptr};

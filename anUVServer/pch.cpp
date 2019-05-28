@@ -11,10 +11,17 @@
 anuv::anlogger& anuv::getlogger() {
 	static anuv::anlogger g_anlog;
 	if (!g_anlog) {
-
-		
+		/*
 		std::string logpath(R"(D:\MyTest\2019_C++\anUVServer\logs\anUVServer)");
 		logpath += ".log";
+		*/
+		char szpath[MAX_PATH + 1] = { 0 };
+		GetModuleFileName(NULL, szpath, MAX_PATH);
+		std::string logpath(szpath);
+		auto pos = logpath.find_last_of('\\');
+		logpath = logpath.substr(0, pos + 1);
+
+		logpath += R"(logs\anUVServer.log)";
 
 		//是否已启动日志线程池?
 		auto tp = spdlog::thread_pool();
@@ -24,7 +31,13 @@ anuv::anlogger& anuv::getlogger() {
 		g_anlog = spdlog::daily_logger_mt<spdlog::async_factory>("anUVServer", logpath);
 
 		g_anlog->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^---%L---%$] [%t] %v");
+#ifdef DEBUG
 		g_anlog->set_level(spdlog::level::trace);
+		//g_anlog->set_level(spdlog::level::info);
+#else
+		g_anlog->set_level(spdlog::level::info);
+#endif
+
 		g_anlog->flush_on(spdlog::level::info);
 
 	}

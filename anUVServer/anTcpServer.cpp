@@ -2,10 +2,13 @@
 #include "anTcpServer.h"
 #include "anTcpSocket.h"
 #include "anMee.h"
+#include "anMee2.h"
 
 anTcpServer::anTcpServer(uv_loop_t *loop) : uv_loop_(loop)
 {
-	message_handler_ = std::make_unique<anMee>();
+	//message_handler_ = std::make_unique<anMee>();
+
+	message_handler2_ = std::make_unique<anMee2>(uv_loop_);
 }
 
 
@@ -42,7 +45,8 @@ int anTcpServer::start(const char * addr, const unsigned short port)
 		return r;
 	}
 
-	r = message_handler_->start();
+	//r = message_handler_->start();
+	r = message_handler2_->start();
 	if (r) {
 		anuv::getlogger()->error("anTcpServer::start({}, {})--message_handler_->start={}, {}", \
 			addr, port, r, anuv::getUVError_Info(r));
@@ -65,6 +69,9 @@ int anTcpServer::wait_exit()
 {
 	int r = 0;
 
+	//
+	message_handler2_->stop();
+
 	uv_walk(uv_loop_, anTcpServer::on_walk, nullptr);
 	uv_run(uv_loop_, UV_RUN_DEFAULT);
 	do {
@@ -73,7 +80,8 @@ int anTcpServer::wait_exit()
 			uv_run(uv_loop_, UV_RUN_NOWAIT);
 		}
 
-		anuv::getlogger()->info("anTcpServer::wait_exit(). uv_loop_close()={}", r);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));//防占cpu
+		//anuv::getlogger()->debug("anTcpServer::wait_exit(). uv_loop_close()={}", r);
 	} while (r);
 
 	uv_loop_ = nullptr;
@@ -83,7 +91,8 @@ int anTcpServer::wait_exit()
 
 int anTcpServer::push_work(anTcpSocket * socket)
 {
-	return message_handler_->push_work(socket);
+	//return message_handler_->push_work(socket);
+	return message_handler2_->push_work(socket);
 }
 
 
@@ -101,9 +110,15 @@ int anTcpServer::init()
 	uv_handle_set_data(reinterpret_cast<uv_handle_t*>(&uv_server_), this);
 	//uv_server_.data = this;
 	
-	r = uv_tcp_nodelay(&uv_server_, 0);
+	r = uv_tcp_nodelay(&uv_server_, 1);
 	if (r) {
-		anuv::getlogger()->error("anTcpServer::init()--uv_tcp_nodelay={}, {}", r, anuv::getUVError_Info(r));
+		anuv::getlogger()->error("anTcpServer::init()--uv_tcp_nodelay(1)={}, {}", r, anuv::getUVError_Info(r));
+		//return r;
+	}
+
+	r = uv_tcp_keepalive(&uv_server_, 0, 0);
+	if (r) {
+		anuv::getlogger()->error("anTcpServer::init()--uv_tcp_keepalive(0, 0)={}, {}", r, anuv::getUVError_Info(r));
 		//return r;
 	}
 
@@ -162,7 +177,7 @@ void anTcpServer::on_new_connection(uv_stream_t * server, int status)
 	}
 
 	log += fmt::format("sessionid={}, client={:#08x}", sessionid, (int)client);
-	anuv::getlogger()->error(log);
+	anuv::getlogger()->info(log);
 
 }
 
@@ -189,6 +204,9 @@ void anTcpServer::on_read(uv_stream_t * socket, ssize_t nread, const uv_buf_t * 
 			}
 			break;
 		case UV_ECONNRESET:	//异常断开
+			if (!uv_is_closing((uv_handle_t*)socket)) {
+				uv_close(reinterpret_cast<uv_handle_t*>(socket), anTcpServer::on_close);
+			}
 			break;
 		default:
 			break;
@@ -210,18 +228,20 @@ void anTcpServer::on_read(uv_stream_t * socket, ssize_t nread, const uv_buf_t * 
 
 void anTcpServer::on_close(uv_handle_t * handle)
 {
-	std::string log = fmt::format("anTcpServer::on_close({:#08x})", (int)handle);
+	std::string log = fmt::format("anTcpServer::on_close({:#08x}), ", (int)handle);
 
 	if (UV_ASYNC == handle->type) {
 
 	}
 	else if (UV_TCP == handle->type) {
 		//从连接中清除
-		anTcpServer * that = reinterpret_cast<anTcpServer *>(handle->data);
+		anTcpSocket * socket = reinterpret_cast<anTcpSocket *>(handle);
+		//anTcpServer * server = reinterpret_cast<anTcpServer *>(handle->data);
 		
+		log += fmt::format("clear_session(sessionid={}, client={:#08x})", socket->sessionID_, (int)handle);
 
 		//通知退出
-		
+		socket->get_Server()->clear_session(socket->sessionID_);
 	}
 
 	anuv::getlogger()->info(log);
@@ -231,5 +251,15 @@ void anTcpServer::on_walk(uv_handle_t * handle, void * arg)
 {
 	if (!uv_is_closing(handle)) {
 		uv_close(handle, nullptr);
+	}
+}
+
+void anTcpServer::clear_session(const int serssionid)
+{
+	auto it = client_lists_.find(serssionid);
+	if (it != client_lists_.end()) {
+		delete it->second;
+
+		client_lists_.erase(it);
 	}
 }

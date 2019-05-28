@@ -8,6 +8,8 @@
 
 class anTcpSocket;
 class anMee;
+class anMee2;
+
 
 class anTcpServer
 {
@@ -41,6 +43,8 @@ private:
 		static int sessionID = 0;
 		return (++sessionID);
 	}
+
+	void clear_session(const int serssionid);
 private:
 	uv_tcp_t uv_server_ = { 0x00 };
 	uv_loop_t * uv_loop_ = {nullptr};
@@ -48,6 +52,7 @@ private:
 	std::atomic_bool init_ = { ATOMIC_FLAG_INIT };
 	std::map<int, anTcpSocket*> client_lists_;
 
-	std::unique_ptr<anMee> message_handler_;
+	//std::unique_ptr<anMee> message_handler_;
+	std::unique_ptr<anMee2> message_handler2_;
 };
 
