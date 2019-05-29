@@ -122,8 +122,48 @@ int anTcpServer::init()
 		//return r;
 	}
 
+	r = uv_signal_init(uv_loop_, &sig_);
+	if (r) {
+		anuv::getlogger()->error("anTcpServer::init()--uv_signal_init={}, {}", r, anuv::getUVError_Info(r));
+		//return r;
+	}
+
+	sig_.data = this;
+	r = uv_signal_start(&sig_, anTcpServer::on_signal, SIGINT);
+	if (r) {
+		anuv::getlogger()->error("anTcpServer::init()--uv_signal_start={}, {}", r, anuv::getUVError_Info(r));
+		//return r;
+	}
+
 	return r;
 }
+
+/*
+int anTcpServer::shutdown()
+{
+	std::string log = fmt::format("anTcpServer::shutdown(), ");
+	int r = 0;
+
+	if (!uv_is_active((uv_handle_t*)&this->uv_server_)) {
+		log+= fmt::format("uv_is_active({:#08x}) unactive, ", (int)&this->uv_server_);
+		anuv::getlogger()->error(log);
+		return r;
+	}
+
+	
+	uv_shutdown_t * req = new uv_shutdown_t;
+	req->data = this;
+	r = uv_shutdown(req, (uv_stream_t*)&this->uv_server_, anTcpServer::on_shutdown);
+	if (r) {
+		log += fmt::format("uv_shutdown(req={:#08x})={},{}, ", (int)req, r, anuv::getUVError_Info(r));
+
+		delete req;
+		anuv::getlogger()->error(log);
+	}
+
+	return r;
+}
+*/
 
 void anTcpServer::on_new_connection(uv_stream_t * server, int status)
 {
@@ -253,6 +293,41 @@ void anTcpServer::on_walk(uv_handle_t * handle, void * arg)
 		uv_close(handle, nullptr);
 	}
 }
+
+void anTcpServer::on_signal(uv_signal_t * handle, int signum)
+{
+	std::string log = fmt::format("anTcpServer::on_signal({:#08x}, {}), ", (int)handle, signum);
+	int r = 0;
+	anTcpServer * that = reinterpret_cast<anTcpServer *>(handle->data);
+
+	//shutdown
+	//r = that->shutdown();
+	//
+	uv_stop(that->uv_loop_);
+
+	uv_close((uv_handle_t*)&that->uv_server_, nullptr);
+
+	uv_signal_stop(handle);
+
+	anuv::getlogger()->info(log);
+}
+
+/*
+void anTcpServer::on_shutdown(uv_shutdown_t * req, int status)
+{
+	std::string log = fmt::format("anTcpServer::on_shutdown({:#08x}, {}), ", (int)req, status);
+	int r = 0;
+	anTcpServer * that = reinterpret_cast<anTcpServer *>(req->data);
+
+	//
+	uv_stop(that->uv_loop_);
+
+	delete req;
+	
+	anuv::getlogger()->info(log);
+
+}
+*/
 
 void anTcpServer::clear_session(const int serssionid)
 {
