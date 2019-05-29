@@ -17,8 +17,12 @@ anuv::anlogger& anuv::getlogger() {
 		*/
 		size_t len = MAX_PATH + 1;
 		char szpath[MAX_PATH + 1] = { 0 };
+		/*
+		GetModuleFileName(NULL, szpath, MAX_PATH);
+		std::string logpath(szpath);
+		*/
+
 		uv_exepath(szpath, &len);
-		//GetModuleFileName(NULL, szpath, MAX_PATH);
 		std::string logpath(szpath, len);
 		auto pos = logpath.find_last_of('\\');
 		logpath = logpath.substr(0, pos + 1);
